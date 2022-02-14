@@ -1,0 +1,107 @@
+---
+title: "ASDB Exploratory Analysis"
+author: "Diego G. Davila"
+output:
+  html_document:
+    df_print: paged
+---
+
+This notebook contains some exploratory analysis of the [ASBD](http://alteredstatesdb.org) (Altered States Database) aggregated by Timo Torsten Schmidt @ University of Osnabrück. The paper outlining the database can be found [here](https://doi.org/10.3389/fpsyg.2018.01028).
+
+```{r setup, echo = FALSE, message=FALSE, warning=FALSE}
+if(!require('pacman')) {install.packages('pacman')}
+pacman::p_load(dplyr, ggplot2, grid, gridExtra, ggrepel, leaps, car, tidyverse, contrast, sandwich, stargazer, data.table, readxl, naniar)
+```
+
+# ASC 5D - 2020
+
+Read in the data and do a bit of exploration
+```{r}
+raw_data <- read_excel('ASDB_Data/ASDB_v1.1a_2020/Data_v1.1a_2020_5D-ASC.xlsx')
+skimr::skim(raw_data)
+```
+
+Extract the variables we will be using
+```{r}
+ASC_data <- raw_data %>%
+  select(induction_method, injection_method, dosage_quantity, dosage_unit, Auditory_Alterations_mean, Auditory_Alterations_std, Dread_of_Ego_Dissolution_mean, Dread_of_Ego_Dissolution_std,
+         Oceanic_Boundlessness_mean, Oceanic_Boundlessness_std, Vigilance_Reduction_mean, Vigilance_Reduction_std, Visionary_Restructuralization_mean, Visionary_Restructuralization_std)
+head(ASC_data, 5)
+```
+
+It looks like there are some entries with values labeled "NULL" - Let's remove these and only keep rows with complete data
+```{r}
+ASC_data <- ASC_data %>%
+  replace_with_na_all(condition = ~.x == "NULL") %>%
+  na.omit()
+skimr::skim(ASC_data)
+```
+
+Ok, we're only interested in some drugs. Let's pick them out
+```{r}
+desired_drugs <- c("MDMA", "Ketamine", "Ketamine (S-Ketamine)", "Psilocybin", "Meditation + Psilocybin", "Ibogaine", "LSD")
+ASC_data <- ASC_data[ASC_data$induction_method %in% desired_drugs, ]
+table(ASC_data$induction_method)
+```
+
+Let's do some exploratory plotting
+```{r, fig.width=30, fig.height=15}
+aud_plt <- ggplot(data = ASC_data, aes(x = induction_method, y = Auditory_Alterations_mean, fill = induction_method)) +
+  geom_bar(stat = 'identity', position = 'dodge') + 
+  ylab("Auditory Alterations") + 
+  theme(axis.ticks.x=element_blank())
+dread_plt <- ggplot(data = ASC_data, aes(x = induction_method, y = Dread_of_Ego_Dissolution_mean, fill = induction_method)) +
+  geom_bar(stat = 'identity', position = 'dodge') +
+  ylab("Dread of Ego Diss.") + 
+  theme(axis.ticks.x=element_blank())
+ocean_plt <- ggplot(data = ASC_data, aes(x = induction_method, y = Oceanic_Boundlessness_mean, fill = induction_method)) +
+  geom_bar(stat = 'identity', position = 'dodge') +
+  ylab("Boundlessness") + 
+  theme(axis.ticks.x=element_blank())
+vigil_plt <- ggplot(data = ASC_data, aes(x = induction_method, y = Vigilance_Reduction_mean, fill = induction_method)) +
+  geom_bar(stat = 'identity', position = 'dodge') +
+  ylab("Vigilance Reduction") + 
+  theme(axis.ticks.x=element_blank())
+vision_plt <- ggplot(data = ASC_data, aes(x = induction_method, y = Visionary_Restructuralization_mean, fill = induction_method)) +
+  geom_bar(stat = 'identity', position = 'dodge') + 
+  ylab("Visionary Restructuralization") + 
+  theme(axis.ticks.x=element_blank())
+grid.arrange(aud_plt, dread_plt, ocean_plt, vigil_plt, vision_plt, nrow = 5, top = textGrob("ASC Domain Mean Score By Method of Induction"))
+```
+
+# ASC 11D
+
+Read in the data and do a bit of exploration
+```{r}
+raw_data_11 <- read_excel('ASDB_Data/ASDB_v1.1a_2020/Data_v1.1a_2020_11D-ASC.xlsx')
+skimr::skim(raw_data_11)
+```
+
+Extract the variables we'll be using
+```{r}
+ASC11_data <- raw_data_11[,c(15, 16, 18:41)]
+head(ASC11_data, 5)
+```
+
+Get rid of "NULL" entries
+```{r}
+ASC11_data <- ASC11_data %>%
+  replace_with_na_all(condition = ~.x == "NULL") %>%
+  na.omit()
+skimr::skim(ASC11_data)
+```
+
+Pick out desired drugs
+```{r}
+unique(ASC11_data$induction_method)
+desired_drugs <- c("MDMA", "Ketamine", "Ketamine (S-Ketamine)","Ketamine (racemic)", "Psilocybin", "LSD")
+ASC11_data <- ASC11_data[ASC11_data$induction_method %in% desired_drugs, ]
+table(ASC11_data$induction_method)
+```
+
+Exploratory plotting
+```{r, fig.width=30, fig.height=15}
+
+```
+
+
