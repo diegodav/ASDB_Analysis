@@ -45,7 +45,7 @@ table(ASC_data$induction_method)
 ```
 
 Let's do some exploratory plotting
-```{r, fig.width=30, fig.height=15}
+```{r, fig.width=15, fig.height=10}
 aud_plt <- ggplot(data = ASC_data, aes(x = induction_method, y = Auditory_Alterations_mean, fill = induction_method)) +
   geom_bar(stat = 'identity', position = 'dodge') + 
   ylab("Auditory Alterations") + 
